@@ -3,776 +3,361 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>비트코인 가격 & 김치 프리미엄</title>
+  <title>비트코인 실시간 가격 & 김치 프리미엄 계산기</title>
+  <meta name="description" content="업비트 비트코인 KRW 가격, 바이낸스 USD 가격, 김치 프리미엄을 실시간으로 확인하고 BTC 환산 계산기를 이용해보세요." />
+  <link rel="stylesheet" href="assets/style.css" />
+  <!-- 테마 깜빡임 방지: body 렌더 전에 적용 -->
+  <script>
+    (function () {
+      var s = localStorage.getItem('btc-theme');
+      var d = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || d);
+    })();
+  </script>
   <style>
-    /* ── 기본 변수 ── */
-    :root {
-      --bg: #f5f5f7;
-      --card: #ffffff;
-      --text: #1d1d1f;
-      --sub: #6e6e73;
-      --border: #d2d2d7;
-      --accent: #0071e3;
-      --positive: #ff3b30;
-      --negative: #007aff;
-      --shadow: 0 2px 16px rgba(0,0,0,0.08);
-      --radius: 18px;
-      --transition: 0.3s cubic-bezier(.4,0,.2,1);
-    }
-    [data-theme="dark"] {
-      --bg: #000000;
-      --card: #1c1c1e;
-      --text: #f5f5f7;
-      --sub: #98989d;
-      --border: #38383a;
-      --accent: #0a84ff;
-      --shadow: 0 2px 24px rgba(0,0,0,0.4);
-    }
+    /* ── 메인 페이지 전용 스타일 ── */
+    .price-row    { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .price-main   { font-size: 2.75rem; font-weight: 700; letter-spacing: -0.04em; line-height: 1; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+    .price-sub    { font-size: 0.97rem; color: var(--sub); font-variant-numeric: tabular-nums; }
+    .update-time  { font-size: 0.71rem; color: var(--sub); margin-top: 12px; }
+    .live-dot     { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #34c759; margin-right: 5px; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.25} }
 
-    /* ── 리셋 & 기본 ── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 16px; scroll-behavior: smooth; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      transition: background var(--transition), color var(--transition);
-    }
+    .change-badge { display: inline-flex; align-items: center; font-size: 0.8rem; font-weight: 600; padding: 3px 9px; border-radius: 7px; white-space: nowrap; }
+    .change-badge.pos { background: rgba(255,59,48,0.12); color: var(--positive); }
+    .change-badge.neg { background: rgba(0,122,255,0.12); color: var(--negative); }
 
-    /* ── 레이아웃 ── */
-    .container {
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 24px 16px 48px;
-    }
+    .premium-value { font-size: 2.3rem; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+    .premium-value.pos { color: var(--positive); }
+    .premium-value.neg { color: var(--negative); }
+    .premium-detail { font-size: 0.78rem; color: var(--sub); margin-top: 5px; }
 
-    /* ── 헤더 ── */
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-    }
-    .header-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      color: var(--sub);
-    }
-    .header-controls { display: flex; gap: 8px; }
-    .icon-btn {
-      width: 36px; height: 36px;
-      border: none; border-radius: 50%;
-      background: var(--card);
-      color: var(--text);
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1rem;
-      box-shadow: var(--shadow);
-      transition: transform 0.15s, background var(--transition);
-    }
-    .icon-btn:active { transform: scale(0.92); }
-
-    /* ── 카드 ── */
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 12px;
-      box-shadow: var(--shadow);
-      transition: background var(--transition);
-    }
-    .card-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--sub);
-      margin-bottom: 8px;
-    }
-
-    /* ── 스켈레톤 ── */
-    .skeleton {
-      background: linear-gradient(90deg, var(--border) 25%, var(--bg) 50%, var(--border) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.4s infinite;
-      border-radius: 8px;
-    }
-    @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-    .skel-price { height: 52px; width: 70%; margin-bottom: 8px; }
-    .skel-sub { height: 20px; width: 45%; }
-    .skel-prem { height: 48px; width: 55%; }
-
-    /* ── 가격 표시 ── */
-    .price-main {
-      font-size: 2.8rem;
-      font-weight: 700;
-      letter-spacing: -0.04em;
-      line-height: 1;
-      margin-bottom: 6px;
-      transition: color 0.2s;
-      font-variant-numeric: tabular-nums;
-    }
-    .price-sub {
-      font-size: 1rem;
-      color: var(--sub);
-      font-weight: 400;
-      font-variant-numeric: tabular-nums;
-    }
-    .price-row {
-      display: flex;
-      align-items: flex-end;
-      justify-content: space-between;
-      gap: 8px;
-    }
-    .update-time {
-      font-size: 0.72rem;
-      color: var(--sub);
-      margin-top: 10px;
-    }
-    .live-dot {
-      display: inline-block;
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: #34c759;
-      margin-right: 4px;
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
-
-    /* ── 플래시 애니메이션 ── */
-    @keyframes flash-up { 0%,100%{color:inherit;} 30%{color:var(--positive);} }
-    @keyframes flash-down { 0%,100%{color:inherit;} 30%{color:var(--negative);} }
-    .flash-up { animation: flash-up 0.5s ease; }
-    .flash-down { animation: flash-down 0.5s ease; }
-
-    /* ── 김치 프리미엄 ── */
-    .premium-value {
-      font-size: 2.4rem;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      font-variant-numeric: tabular-nums;
-    }
-    .premium-value.positive { color: var(--positive); }
-    .premium-value.negative { color: var(--negative); }
-    .premium-detail {
-      font-size: 0.8rem;
-      color: var(--sub);
-      margin-top: 4px;
-    }
-
-    /* ── 스파크라인 ── */
-    .chart-wrap {
-      margin-top: 16px;
-      height: 60px;
-      position: relative;
-    }
-    canvas#sparkline {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    /* ── 구분선 ── */
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 20px 0;
-    }
-
-    /* ── 계산기 ── */
-    .calc-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-      align-items: stretch;
-    }
-    .calc-input-wrap {
-      flex: 1;
-      position: relative;
-    }
-    .calc-input {
-      width: 100%;
-      padding: 14px 16px;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      background: var(--bg);
-      color: var(--text);
-      font-variant-numeric: tabular-nums;
-      transition: border-color 0.2s, background var(--transition);
-      outline: none;
-      font-family: inherit;
-    }
+    /* 계산기 */
+    .calc-row     { display: flex; gap: 8px; margin-bottom: 10px; }
+    .calc-iw      { flex: 1; position: relative; }
+    .calc-input   { width: 100%; padding: 13px 60px 13px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 1.05rem; font-weight: 600; background: var(--bg); color: var(--text); font-family: inherit; font-variant-numeric: tabular-nums; outline: none; transition: border-color 0.2s, background var(--tr); }
     .calc-input:focus { border-color: var(--accent); }
-    .calc-unit {
-      position: absolute;
-      right: 14px; top: 50%;
-      transform: translateY(-50%);
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--sub);
-      pointer-events: none;
-    }
-    .toggle-btn {
-      padding: 0 16px;
-      border: 1.5px solid var(--border);
-      border-radius: 12px;
-      background: var(--bg);
-      color: var(--accent);
-      font-size: 0.78rem;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: background 0.2s, border-color 0.2s;
-      font-family: inherit;
-    }
-    .toggle-btn:hover { background: var(--card); }
+    .calc-unit    { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 0.72rem; font-weight: 700; color: var(--sub); pointer-events: none; }
+    .toggle-btn   { padding: 0 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--accent); font-size: 0.78rem; font-weight: 700; white-space: nowrap; transition: background 0.15s; font-family: inherit; }
+    .toggle-btn:hover { background: var(--card-alt); }
 
-    .result-box {
-      background: var(--bg);
-      border-radius: 12px;
-      padding: 14px 16px;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border: 1px solid var(--border);
-      transition: background var(--transition);
-    }
-    .result-label { font-size: 0.78rem; color: var(--sub); font-weight: 500; }
-    .result-value {
-      font-size: 1.05rem;
-      font-weight: 700;
-      font-variant-numeric: tabular-nums;
-    }
-    .copy-btn {
-      padding: 4px 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: transparent;
-      color: var(--accent);
-      font-size: 0.7rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s;
-      font-family: inherit;
-    }
-    .copy-btn:hover { background: var(--card); }
+    .result-box   { background: var(--bg); border-radius: var(--radius-sm); padding: 13px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); transition: background var(--tr); }
+    .result-label { font-size: 0.77rem; color: var(--sub); font-weight: 500; margin-bottom: 2px; }
+    .result-value { font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .copy-btn     { padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--accent); font-size: 0.7rem; font-weight: 600; transition: background 0.12s; font-family: inherit; }
+    .copy-btn:hover { background: var(--card-alt); }
     .copy-btn.copied { color: #34c759; border-color: #34c759; }
 
-    /* ── 프리미엄 입력 ── */
-    .prem-input-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 16px;
-    }
-    .prem-label { font-size: 0.78rem; color: var(--sub); white-space: nowrap; }
-    .prem-input {
-      width: 90px;
-      padding: 8px 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      font-size: 0.95rem;
-      font-weight: 600;
-      background: var(--bg);
-      color: var(--text);
-      outline: none;
-      text-align: right;
-      font-family: inherit;
-      transition: border-color 0.2s, background var(--transition);
-    }
+    .prem-row     { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+    .prem-label   { font-size: 0.78rem; color: var(--sub); white-space: nowrap; }
+    .prem-input   { width: 90px; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-xs); font-size: 0.95rem; font-weight: 600; background: var(--bg); color: var(--text); outline: none; text-align: right; font-family: inherit; transition: border-color 0.2s, background var(--tr); }
     .prem-input:focus { border-color: var(--accent); }
-    .use-kimchi-btn {
-      padding: 8px 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      background: var(--bg);
-      color: var(--accent);
-      font-size: 0.72rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.15s;
-      font-family: inherit;
-      white-space: nowrap;
-    }
-    .use-kimchi-btn:hover { background: var(--card); }
+    .prem-btn     { padding: 8px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-xs); background: var(--bg); color: var(--accent); font-size: 0.72rem; font-weight: 700; transition: background 0.15s; font-family: inherit; white-space: nowrap; }
+    .prem-btn:hover { background: var(--card-alt); }
 
-    /* ── 에러 배너 ── */
-    .error-banner {
-      background: #ff3b3015;
-      border: 1px solid #ff3b3040;
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 0.78rem;
-      color: var(--positive);
-      margin-bottom: 12px;
-      display: none;
-    }
-    .error-banner.show { display: block; }
+    /* 화폐 토글 */
+    .cur-toggle   { display: inline-flex; background: var(--card-alt); border-radius: var(--radius-xs); padding: 2px; gap: 2px; }
+    .cur-toggle button { padding: 4px 12px; border: none; border-radius: 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; background: transparent; color: var(--sub); transition: background 0.15s, color 0.15s; font-family: inherit; }
+    .cur-toggle button.active { background: var(--card); color: var(--text); }
 
-    /* ── 화폐 토글 ── */
-    .currency-toggle {
-      display: inline-flex;
-      background: var(--border);
-      border-radius: 8px;
-      padding: 2px;
-      gap: 2px;
-    }
-    .currency-toggle button {
-      padding: 4px 12px;
-      border: none;
-      border-radius: 6px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      cursor: pointer;
-      background: transparent;
-      color: var(--sub);
-      transition: background 0.15s, color 0.15s;
-      font-family: inherit;
-    }
-    .currency-toggle button.active {
-      background: var(--card);
-      color: var(--text);
-    }
+    /* 스켈레톤 */
+    .skel-lg  { height: 50px; width: 68%; margin-bottom: 8px; }
+    .skel-sm  { height: 18px; width: 42%; }
+    .skel-prem{ height: 46px; width: 52%; }
 
-    /* ── 24h 변동 배지 ── */
-    .change-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 2px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 6px;
-    }
-    .change-badge.pos { background: #ff3b3018; color: var(--positive); }
-    .change-badge.neg { background: #007aff18; color: var(--negative); }
-
-    /* ── 반응형 ── */
-    @media (max-width: 380px) {
-      .price-main { font-size: 2.2rem; }
-      .premium-value { font-size: 2rem; }
-      .container { padding: 16px 12px 40px; }
-    }
+    /* 플래시 */
+    @keyframes flash-up   { 0%,100%{color:inherit} 35%{color:var(--positive)} }
+    @keyframes flash-down { 0%,100%{color:inherit} 35%{color:var(--negative)} }
+    .flash-up   { animation: flash-up   0.5s ease; }
+    .flash-down { animation: flash-down 0.5s ease; }
   </style>
 </head>
 <body>
-<div class="container">
 
-  <!-- 헤더 -->
-  <div class="header">
-    <span class="header-title">₿ Bitcoin</span>
-    <div class="header-controls">
-      <!-- 화폐 단위 토글 -->
-      <div class="currency-toggle">
-        <button id="btn-krw" class="active" onclick="setCurrency('KRW')">KRW</button>
-        <button id="btn-usd" onclick="setCurrency('USD')">USD</button>
-      </div>
-      <!-- 다크모드 토글 -->
-      <button class="icon-btn" id="theme-btn" onclick="toggleTheme()" title="테마 변경">🌙</button>
-    </div>
-  </div>
+<!-- 네비게이션 (main.js가 주입) -->
+<div id="nav-placeholder"></div>
 
-  <!-- 에러 배너 -->
-  <div class="error-banner" id="error-banner">⚠️ 데이터를 불러오는 중 오류가 발생했습니다. 재시도 중...</div>
+<main>
+  <div class="container">
 
-  <!-- 가격 카드 -->
-  <div class="card" id="price-card">
-    <div class="card-label">비트코인 가격</div>
-    <div class="price-row">
-      <div>
-        <!-- 스켈레톤 -->
-        <div class="skeleton skel-price" id="skel-price"></div>
-        <div class="skeleton skel-sub" id="skel-sub"></div>
-        <!-- 실제 데이터 (초기 hidden) -->
-        <div id="price-main-wrap" style="display:none;">
-          <div class="price-main" id="price-main">—</div>
-          <div class="price-sub" id="price-sub">—</div>
+    <!-- 에러 배너 -->
+    <div class="error-banner" id="error-banner">⚠️ 데이터를 불러오는 중 오류가 발생했습니다. 재시도 중...</div>
+
+    <!-- ── 가격 카드 ── -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span class="card-label" style="margin:0;">비트코인 실시간 가격</span>
+        <div class="cur-toggle">
+          <button id="btn-krw" class="active" onclick="setCurrency('KRW')">KRW</button>
+          <button id="btn-usd" onclick="setCurrency('USD')">USD</button>
         </div>
       </div>
-      <span class="change-badge" id="change-badge" style="display:none;"></span>
-    </div>
-    <!-- 스파크라인 -->
-    <div class="chart-wrap">
-      <canvas id="sparkline"></canvas>
-    </div>
-    <div class="update-time" id="update-time">
-      <span class="live-dot"></span>데이터 로딩 중...
-    </div>
-  </div>
 
-  <!-- 김치 프리미엄 카드 -->
-  <div class="card" id="prem-card">
-    <div class="card-label">김치 프리미엄</div>
-    <div class="skeleton skel-prem" id="skel-prem"></div>
-    <div id="prem-wrap" style="display:none;">
-      <div class="premium-value" id="premium-value">—</div>
-      <div class="premium-detail" id="premium-detail">업비트 KRW / 바이낸스 USD × 환율</div>
-    </div>
-  </div>
-
-  <!-- 계산기 카드 -->
-  <div class="card">
-    <div class="card-label">비트코인 계산기</div>
-
-    <!-- BTC 입력 -->
-    <div class="calc-row">
-      <div class="calc-input-wrap">
-        <input
-          class="calc-input"
-          id="btc-input"
-          type="number"
-          placeholder="0"
-          min="0"
-          step="any"
-          oninput="onBtcInput()"
-          style="padding-right: 68px;"
-        />
-        <span class="calc-unit" id="btc-unit-label">BTC</span>
+      <div class="price-row">
+        <div>
+          <!-- 스켈레톤 -->
+          <div class="skeleton skel-lg" id="skel-price"></div>
+          <div class="skeleton skel-sm"  id="skel-sub"></div>
+          <!-- 실제 데이터 -->
+          <div id="price-wrap" style="display:none;">
+            <div class="price-main" id="price-main">—</div>
+            <div class="price-sub"  id="price-sub">—</div>
+          </div>
+        </div>
+        <span class="change-badge" id="change-badge" style="display:none;margin-top:4px;"></span>
       </div>
-      <!-- 사토시 토글 -->
-      <button class="toggle-btn" id="sat-toggle" onclick="toggleSatoshi()">사토시</button>
-    </div>
 
-    <!-- 결과: KRW -->
-    <div class="result-box" id="res-krw-box">
-      <div>
-        <div class="result-label">한국 원화 (KRW)</div>
-        <div class="result-value" id="res-krw">—</div>
+      <div class="update-time" id="update-time">
+        <span class="live-dot"></span>데이터 로딩 중...
       </div>
-      <button class="copy-btn" onclick="copyValue('res-krw', this)">복사</button>
     </div>
 
-    <!-- 결과: USD -->
-    <div class="result-box" id="res-usd-box">
-      <div>
-        <div class="result-label">미국 달러 (USD)</div>
-        <div class="result-value" id="res-usd">—</div>
+    <!-- ── 김치 프리미엄 카드 ── -->
+    <div class="card">
+      <div class="card-label">김치 프리미엄</div>
+      <div class="skeleton skel-prem" id="skel-prem"></div>
+      <div id="prem-wrap" style="display:none;">
+        <div class="premium-value" id="prem-value">—</div>
+        <div class="premium-detail" id="prem-detail">업비트 KRW ÷ (바이낸스 USD × 환율)</div>
       </div>
-      <button class="copy-btn" onclick="copyValue('res-usd', this)">복사</button>
     </div>
 
-    <div class="divider"></div>
+    <!-- ── 계산기 카드 ── -->
+    <div class="card">
+      <div class="card-label">비트코인 계산기</div>
 
-    <!-- 프리미엄 반영 설정 -->
-    <div class="card-label" style="margin-bottom:4px;">사용자 지정 프리미엄 반영</div>
-    <div class="prem-input-wrap">
-      <span class="prem-label">프리미엄</span>
-      <input
-        class="prem-input"
-        id="custom-prem"
-        type="number"
-        placeholder="0.00"
-        step="0.01"
-        oninput="onBtcInput()"
-      />
-      <span class="prem-label">%</span>
-      <button class="use-kimchi-btn" onclick="useKimchiPremium()">김프 적용</button>
-    </div>
-
-    <!-- 프리미엄 반영 결과 -->
-    <div class="result-box" style="margin-top:12px;" id="res-prem-box">
-      <div>
-        <div class="result-label">프리미엄 반영 가격 (KRW/BTC)</div>
-        <div class="result-value" id="res-prem">—</div>
+      <div class="calc-row">
+        <div class="calc-iw">
+          <input class="calc-input" id="btc-input" type="number" placeholder="0" min="0" step="any"
+                 oninput="onInput()" style="padding-right:60px;" />
+          <span class="calc-unit" id="btc-unit">BTC</span>
+        </div>
+        <button class="toggle-btn" id="sat-btn" onclick="toggleSat()">사토시</button>
       </div>
-      <button class="copy-btn" onclick="copyValue('res-prem', this)">복사</button>
-    </div>
 
-    <div class="result-box" id="res-prem-total-box">
-      <div>
-        <div class="result-label">프리미엄 반영 환산액 (KRW)</div>
-        <div class="result-value" id="res-prem-total">—</div>
+      <div class="result-box">
+        <div>
+          <div class="result-label">한국 원화 (KRW)</div>
+          <div class="result-value" id="res-krw">—</div>
+        </div>
+        <button class="copy-btn" onclick="copyVal('res-krw',this)">복사</button>
       </div>
-      <button class="copy-btn" onclick="copyValue('res-prem-total', this)">복사</button>
+
+      <div class="result-box">
+        <div>
+          <div class="result-label">미국 달러 (USD)</div>
+          <div class="result-value" id="res-usd">—</div>
+        </div>
+        <button class="copy-btn" onclick="copyVal('res-usd',this)">복사</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 사용자 지정 프리미엄 -->
+      <div class="card-label" style="margin-bottom:4px;">프리미엄 반영 계산</div>
+      <div class="prem-row">
+        <span class="prem-label">프리미엄</span>
+        <input class="prem-input" id="custom-prem" type="number" placeholder="0.00" step="0.01" oninput="onInput()" />
+        <span class="prem-label">%</span>
+        <button class="prem-btn" onclick="useKimchi()">김프 적용</button>
+      </div>
+
+      <div class="result-box" style="margin-top:10px;">
+        <div>
+          <div class="result-label">프리미엄 반영 단가 (KRW/BTC)</div>
+          <div class="result-value" id="res-prem-price">—</div>
+        </div>
+        <button class="copy-btn" onclick="copyVal('res-prem-price',this)">복사</button>
+      </div>
+
+      <div class="result-box">
+        <div>
+          <div class="result-label">프리미엄 반영 환산액 (KRW)</div>
+          <div class="result-value" id="res-prem-total">—</div>
+        </div>
+        <button class="copy-btn" onclick="copyVal('res-prem-total',this)">복사</button>
+      </div>
     </div>
-  </div>
 
-</div>
+  </div><!-- /container -->
+</main>
 
+<!-- 푸터 (main.js가 주입) -->
+<div id="footer-placeholder"></div>
+
+<!-- ROOT_PATH는 main.js보다 먼저 선언 -->
+<script>window.ROOT_PATH = '';</script>
+<script src="assets/main.js"></script>
+
+<!-- ── 비트코인 데이터 로직 (메인 페이지 전용) ── -->
 <script>
-  // ── 상태 ──
-  let state = {
-    btcKrw: null,      // 업비트 BTC/KRW
-    btcUsd: null,      // 바이낸스 BTC/USD
-    usdKrw: null,      // USD/KRW 환율
-    kimchiPrem: null,  // 김치 프리미엄 %
-    change24h: null,   // 24시간 변동률 %
-    sparkData: [],     // 스파크라인 데이터 (USD)
-    isSatoshi: false,
-    currency: 'KRW',   // 표시 화폐
-    theme: 'light',
-    lastBtcKrw: null,
-    lastBtcUsd: null,
+  var S = {
+    btcKrw: null, btcUsd: null, usdKrw: null,
+    kimchi: null, change24h: null,
+    prevKrw: null, prevUsd: null,
+    isSat: false, cur: 'KRW',
     loaded: false,
   };
 
-  // ── 테마 ──
-  function toggleTheme() {
-    state.theme = state.theme === 'light' ? 'dark' : 'light';
-    document.documentElement.setAttribute('data-theme', state.theme);
-    document.getElementById('theme-btn').textContent = state.theme === 'dark' ? '☀️' : '🌙';
-    drawSparkline();
-  }
-  // 시스템 다크모드 감지
-  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    state.theme = 'dark';
-    document.documentElement.setAttribute('data-theme', 'dark');
-    document.getElementById('theme-btn').textContent = '☀️';
-  }
+  /* 숫자 포맷 */
+  function fmtKrw(n) { return n == null ? '—' : '₩' + Math.round(n).toLocaleString('ko-KR'); }
+  function fmtUsd(n) { return n == null ? '—' : '$' + n.toLocaleString('en-US', {minimumFractionDigits:2,maximumFractionDigits:2}); }
 
-  // ── 화폐 토글 ──
-  function setCurrency(cur) {
-    state.currency = cur;
-    document.getElementById('btn-krw').className = cur === 'KRW' ? 'active' : '';
-    document.getElementById('btn-usd').className = cur === 'USD' ? 'active' : '';
-    renderPrices();
-  }
-
-  // ── 숫자 포맷 ──
-  function fmt(n, decimals = 0) {
-    if (n == null) return '—';
-    return n.toLocaleString('ko-KR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
-  }
-  function fmtUsd(n) {
-    if (n == null) return '—';
-    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  // ── 스켈레톤 → 실제 UI ──
-  function showData() {
-    if (state.loaded) return;
-    state.loaded = true;
-    ['skel-price','skel-sub','skel-prem'].forEach(id => {
-      const el = document.getElementById(id);
+  /* 스켈레톤 제거 */
+  function showUI() {
+    if (S.loaded) return;
+    S.loaded = true;
+    ['skel-price','skel-sub','skel-prem'].forEach(function(id){
+      var el = document.getElementById(id);
       if (el) el.remove();
     });
-    document.getElementById('price-main-wrap').style.display = '';
-    document.getElementById('prem-wrap').style.display = '';
+    document.getElementById('price-wrap').style.display = '';
+    document.getElementById('prem-wrap').style.display  = '';
     document.getElementById('change-badge').style.display = '';
   }
 
-  // ── 가격 렌더 ──
-  function renderPrices() {
-    if (!state.btcKrw || !state.btcUsd) return;
-    showData();
+  /* 화폐 토글 */
+  function setCurrency(c) {
+    S.cur = c;
+    document.getElementById('btn-krw').className = c === 'KRW' ? 'active' : '';
+    document.getElementById('btn-usd').className = c === 'USD' ? 'active' : '';
+    renderPrice();
+  }
 
-    const mainEl = document.getElementById('price-main');
-    const subEl = document.getElementById('price-sub');
+  /* 가격 렌더 */
+  function renderPrice() {
+    if (!S.btcKrw || !S.btcUsd) return;
+    showUI();
 
-    let newMainText, newSubText;
-    if (state.currency === 'KRW') {
-      newMainText = '₩' + fmt(state.btcKrw);
-      newSubText = fmtUsd(state.btcUsd) + (state.usdKrw ? '  ·  ₩' + fmt(state.usdKrw, 1) + '/USD' : '');
-    } else {
-      newMainText = fmtUsd(state.btcUsd);
-      newSubText = '₩' + fmt(state.btcKrw) + (state.usdKrw ? '  ·  환율 ₩' + fmt(state.usdKrw, 1) : '');
+    var mainEl = document.getElementById('price-main');
+    var subEl  = document.getElementById('price-sub');
+    var prev   = S.cur === 'KRW' ? S.prevKrw : S.prevUsd;
+    var cur    = S.cur === 'KRW' ? S.btcKrw  : S.btcUsd;
+
+    var mainTxt = S.cur === 'KRW' ? fmtKrw(S.btcKrw) : fmtUsd(S.btcUsd);
+    var subTxt  = S.cur === 'KRW'
+      ? fmtUsd(S.btcUsd) + (S.usdKrw ? '  ·  환율 ₩' + Math.round(S.usdKrw).toLocaleString('ko-KR') : '')
+      : fmtKrw(S.btcKrw);
+
+    /* 방향 플래시 */
+    if (prev != null && cur !== prev && mainEl.textContent !== '—') {
+      mainEl.classList.remove('flash-up','flash-down');
+      void mainEl.offsetWidth;
+      mainEl.classList.add(cur > prev ? 'flash-up' : 'flash-down');
     }
+    mainEl.textContent = mainTxt;
+    subEl.textContent  = subTxt;
 
-    // 플래시 애니메이션
-    if (mainEl.textContent && mainEl.textContent !== '—') {
-      const prev = state.currency === 'KRW' ? state.lastBtcKrw : state.lastBtcUsd;
-      const cur  = state.currency === 'KRW' ? state.btcKrw    : state.btcUsd;
-      if (prev != null && cur !== prev) {
-        mainEl.classList.remove('flash-up','flash-down');
-        void mainEl.offsetWidth; // reflow
-        mainEl.classList.add(cur > prev ? 'flash-up' : 'flash-down');
-      }
-    }
-    mainEl.textContent = newMainText;
-    subEl.textContent  = newSubText;
-
-    // 24h 변동 배지
-    const badge = document.getElementById('change-badge');
-    if (state.change24h != null) {
-      const pos = state.change24h >= 0;
+    /* 24h 변동 배지 */
+    var badge = document.getElementById('change-badge');
+    if (S.change24h != null) {
+      var pos = S.change24h >= 0;
       badge.className = 'change-badge ' + (pos ? 'pos' : 'neg');
-      badge.textContent = (pos ? '▲ +' : '▼ ') + state.change24h.toFixed(2) + '%';
+      badge.textContent = (pos ? '▲ +' : '▼ ') + S.change24h.toFixed(2) + '%';
     }
 
-    // 업데이트 시간
-    const now = new Date();
+    /* 업데이트 시간 */
     document.getElementById('update-time').innerHTML =
       '<span class="live-dot"></span>' +
-      now.toLocaleTimeString('ko-KR', { hour12: false }) + ' 기준';
+      new Date().toLocaleTimeString('ko-KR', {hour12:false}) + ' 기준';
 
-    // 계산기 업데이트
-    onBtcInput();
+    onInput();
   }
 
-  // ── 김치 프리미엄 렌더 ──
+  /* 김치 프리미엄 렌더 */
   function renderPremium() {
-    if (state.kimchiPrem == null) return;
-    const el = document.getElementById('premium-value');
-    const val = state.kimchiPrem;
-    el.textContent = (val >= 0 ? '+' : '') + val.toFixed(3) + '%';
-    el.className = 'premium-value ' + (val >= 0 ? 'positive' : 'negative');
+    if (S.kimchi == null) return;
+    var el  = document.getElementById('prem-value');
+    var pos = S.kimchi >= 0;
+    el.textContent = (pos ? '+' : '') + S.kimchi.toFixed(3) + '%';
+    el.className   = 'premium-value ' + (pos ? 'pos' : 'neg');
 
-    if (state.btcKrw && state.btcUsd && state.usdKrw) {
-      const globalKrw = state.btcUsd * state.usdKrw;
-      document.getElementById('premium-detail').textContent =
-        '업비트 ₩' + fmt(state.btcKrw) +
-        ' vs 바이낸스×환율 ₩' + fmt(Math.round(globalKrw));
+    if (S.btcKrw && S.btcUsd && S.usdKrw) {
+      var globalKrw = S.btcUsd * S.usdKrw;
+      document.getElementById('prem-detail').textContent =
+        '업비트 ' + fmtKrw(S.btcKrw) + '  vs  글로벌 환산 ' + fmtKrw(globalKrw);
     }
   }
 
-  // ── 계산기 ──
-  function onBtcInput() {
-    const raw = parseFloat(document.getElementById('btc-input').value) || 0;
-    const btcAmount = state.isSatoshi ? raw / 1e8 : raw;
-    const customPrem = parseFloat(document.getElementById('custom-prem').value) || 0;
-
-    const krwResult = state.btcKrw != null ? btcAmount * state.btcKrw : null;
-    const usdResult = state.btcUsd != null ? btcAmount * state.btcUsd : null;
+  /* 계산기 */
+  function onInput() {
+    var raw = parseFloat(document.getElementById('btc-input').value) || 0;
+    var btc = S.isSat ? raw / 1e8 : raw;
+    var cp  = parseFloat(document.getElementById('custom-prem').value) || 0;
 
     document.getElementById('res-krw').textContent =
-      krwResult != null ? '₩' + fmt(Math.round(krwResult)) : '—';
+      S.btcKrw != null ? fmtKrw(btc * S.btcKrw) : '—';
     document.getElementById('res-usd').textContent =
-      usdResult != null ? '$' + fmt(usdResult, 2) : '—';
+      S.btcUsd != null ? fmtUsd(btc * S.btcUsd) : '—';
 
-    // 프리미엄 반영
-    if (state.btcKrw != null) {
-      const adjPrice = state.btcKrw * (1 + customPrem / 100);
-      const adjTotal = btcAmount * adjPrice;
-      document.getElementById('res-prem').textContent = '₩' + fmt(Math.round(adjPrice));
-      document.getElementById('res-prem-total').textContent = '₩' + fmt(Math.round(adjTotal));
+    if (S.btcKrw != null) {
+      var adjPrice = S.btcKrw * (1 + cp / 100);
+      document.getElementById('res-prem-price').textContent = fmtKrw(adjPrice);
+      document.getElementById('res-prem-total').textContent = fmtKrw(btc * adjPrice);
     }
   }
 
-  function toggleSatoshi() {
-    state.isSatoshi = !state.isSatoshi;
-    const btn = document.getElementById('sat-toggle');
-    const label = document.getElementById('btc-unit-label');
-    if (state.isSatoshi) {
-      btn.textContent = 'BTC';
-      label.textContent = 'SAT';
-      btn.style.color = 'var(--positive)';
-    } else {
-      btn.textContent = '사토시';
-      label.textContent = 'BTC';
-      btn.style.color = '';
-    }
-    onBtcInput();
+  /* 사토시 토글 */
+  function toggleSat() {
+    S.isSat = !S.isSat;
+    document.getElementById('btc-unit').textContent = S.isSat ? 'SAT' : 'BTC';
+    var btn = document.getElementById('sat-btn');
+    btn.textContent = S.isSat ? 'BTC' : '사토시';
+    btn.style.color = S.isSat ? 'var(--positive)' : '';
+    onInput();
   }
 
-  function useKimchiPremium() {
-    if (state.kimchiPrem == null) return;
-    document.getElementById('custom-prem').value = state.kimchiPrem.toFixed(3);
-    onBtcInput();
+  /* 김프 적용 */
+  function useKimchi() {
+    if (S.kimchi == null) return;
+    document.getElementById('custom-prem').value = S.kimchi.toFixed(3);
+    onInput();
   }
 
-  // ── 복사 ──
-  function copyValue(id, btn) {
-    const text = document.getElementById(id).textContent;
+  /* 복사 */
+  function copyVal(id, btn) {
+    var text = document.getElementById(id).textContent;
     if (text === '—') return;
-    navigator.clipboard.writeText(text.replace(/[₩$,]/g, '')).then(() => {
+    navigator.clipboard.writeText(text.replace(/[₩$,]/g, '')).then(function () {
       btn.textContent = '✓';
       btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 1500);
+      setTimeout(function () { btn.textContent = '복사'; btn.classList.remove('copied'); }, 1500);
     });
   }
 
-  // ── 스파크라인 ──
-  function drawSparkline() {
-    const canvas = document.getElementById('sparkline');
-    const ctx = canvas.getContext('2d');
-    const data = state.sparkData;
-    const dpr = window.devicePixelRatio || 1;
-
-    canvas.width  = canvas.offsetWidth  * dpr;
-    canvas.height = canvas.offsetHeight * dpr;
-    ctx.scale(dpr, dpr);
-
-    const W = canvas.offsetWidth;
-    const H = canvas.offsetHeight;
-    ctx.clearRect(0, 0, W, H);
-
-    if (data.length < 2) return;
-
-    const min = Math.min(...data);
-    const max = Math.max(...data);
-    const pad = 4;
-
-    const x = i => (i / (data.length - 1)) * (W - pad * 2) + pad;
-    const y = v => H - pad - ((v - min) / (max - min || 1)) * (H - pad * 2);
-
-    const isUp = data[data.length - 1] >= data[0];
-    const lineColor = isUp ? '#ff3b30' : '#007aff';
-
-    // 채우기 그라디언트
-    const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, lineColor + '40');
-    grad.addColorStop(1, lineColor + '00');
-
-    ctx.beginPath();
-    ctx.moveTo(x(0), y(data[0]));
-    for (let i = 1; i < data.length; i++) {
-      const cx = (x(i - 1) + x(i)) / 2;
-      ctx.bezierCurveTo(cx, y(data[i-1]), cx, y(data[i]), x(i), y(data[i]));
-    }
-    ctx.lineTo(x(data.length - 1), H);
-    ctx.lineTo(x(0), H);
-    ctx.closePath();
-    ctx.fillStyle = grad;
-    ctx.fill();
-
-    // 라인
-    ctx.beginPath();
-    ctx.moveTo(x(0), y(data[0]));
-    for (let i = 1; i < data.length; i++) {
-      const cx = (x(i - 1) + x(i)) / 2;
-      ctx.bezierCurveTo(cx, y(data[i-1]), cx, y(data[i]), x(i), y(data[i]));
-    }
-    ctx.strokeStyle = lineColor;
-    ctx.lineWidth = 2;
-    ctx.lineJoin = 'round';
-    ctx.stroke();
-  }
-
-  // ── API 호출 ──
-  async function fetchAll() {
+  /* ── API 호출 ── */
+  async function fetchData() {
     try {
-      // 병렬 요청
-      const [binanceRes, upbitRes, fxRes] = await Promise.allSettled([
-        fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT').then(r => r.json()),
-        fetch('https://api.upbit.com/v1/ticker?markets=KRW-BTC').then(r => r.json()),
-        fetch('https://open.er-api.com/v6/latest/USD').then(r => r.json()),
+      var results = await Promise.allSettled([
+        fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCUSDT').then(function(r){return r.json();}),
+        fetch('https://api.upbit.com/v1/ticker?markets=KRW-BTC').then(function(r){return r.json();}),
+        fetch('https://open.er-api.com/v6/latest/USD').then(function(r){return r.json();}),
       ]);
 
-      let ok = true;
+      var ok = true;
 
-      // 바이낸스
-      if (binanceRes.status === 'fulfilled') {
-        const d = binanceRes.value;
-        state.lastBtcUsd = state.btcUsd;
-        state.btcUsd  = parseFloat(d.lastPrice);
-        state.change24h = parseFloat(d.priceChangePercent);
+      if (results[0].status === 'fulfilled') {
+        var d = results[0].value;
+        S.prevUsd   = S.btcUsd;
+        S.btcUsd    = parseFloat(d.lastPrice);
+        S.change24h = parseFloat(d.priceChangePercent);
       } else { ok = false; }
 
-      // 업비트
-      if (upbitRes.status === 'fulfilled') {
-        const d = upbitRes.value[0];
-        state.lastBtcKrw = state.btcKrw;
-        state.btcKrw = d.trade_price;
+      if (results[1].status === 'fulfilled') {
+        S.prevKrw = S.btcKrw;
+        S.btcKrw  = results[1].value[0].trade_price;
       } else { ok = false; }
 
-      // 환율
-      if (fxRes.status === 'fulfilled') {
-        state.usdKrw = fxRes.value.rates?.KRW;
+      if (results[2].status === 'fulfilled') {
+        S.usdKrw = results[2].value.rates && results[2].value.rates.KRW;
       }
 
-      // 김치 프리미엄 계산
-      if (state.btcKrw && state.btcUsd && state.usdKrw) {
-        const globalKrw = state.btcUsd * state.usdKrw;
-        state.kimchiPrem = ((state.btcKrw / globalKrw) - 1) * 100;
+      if (S.btcKrw && S.btcUsd && S.usdKrw) {
+        S.kimchi = ((S.btcKrw / (S.btcUsd * S.usdKrw)) - 1) * 100;
         renderPremium();
       }
 
-      renderPrices();
+      renderPrice();
       document.getElementById('error-banner').classList.toggle('show', !ok);
 
     } catch (e) {
@@ -780,38 +365,10 @@
     }
   }
 
-  // 스파크라인 데이터 (1시간봉 × 24)
-  async function fetchSparkline() {
-    try {
-      const res = await fetch(
-        'https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1h&limit=24'
-      );
-      const data = await res.json();
-      // close price
-      state.sparkData = data.map(k => parseFloat(k[4]));
-      drawSparkline();
-    } catch (e) { /* silent */ }
-  }
-
-  // ── 실시간 갱신 루프 ──
-  let tickCount = 0;
-  async function tick() {
-    await fetchAll();
-    tickCount++;
-    // 스파크라인은 5분마다
-    if (tickCount === 1 || tickCount % 300 === 0) fetchSparkline();
-  }
-
-  // 초기 실행
-  tick();
-  setInterval(tick, 1000);
-
-  // 리사이즈 시 스파크라인 재그리기
-  let resizeTimer;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(drawSparkline, 150);
-  });
+  /* 1초 갱신 */
+  fetchData();
+  setInterval(fetchData, 1000);
 </script>
+
 </body>
 </html>

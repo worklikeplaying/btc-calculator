@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>블로그 — 비트코인 계산기</title>
+  <meta name="description" content="비트코인, 김치 프리미엄, 암호화폐 투자에 관한 정보와 분석을 제공합니다." />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <script>
+    (function () {
+      var s = localStorage.getItem('btc-theme');
+      var d = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', s || d);
+    })();
+  </script>
+</head>
+<body>
+
+<div id="nav-placeholder"></div>
+
+<main>
+  <div class="container-wide">
+
+    <div class="page-header">
+      <h1 class="page-title">블로그</h1>
+      <p class="page-subtitle">비트코인 · 김치 프리미엄 · 암호화폐 정보</p>
+    </div>
+
+    <div class="blog-grid">
+
+      <!-- 포스트 1 -->
+      <a class="blog-card" href="post.html?id=kimchi-premium-guide">
+        <span class="blog-tag">가이드</span>
+        <div class="blog-card-title">김치 프리미엄이란? 2026년 완벽 가이드</div>
+        <div class="blog-card-excerpt">국내 비트코인 가격이 해외보다 높게 형성되는 이유와 김치 프리미엄이 발생하는 메커니즘을 쉽게 설명합니다. 투자 전 꼭 알아야 할 개념입니다.</div>
+        <div class="blog-card-meta">
+          <span>2026.05.01</span>
+          <span>읽는 시간 5분</span>
+        </div>
+      </a>
+
+      <!-- 포스트 2 -->
+      <a class="blog-card" href="post.html?id=upbit-binance-diff">
+        <span class="blog-tag">분석</span>
+        <div class="blog-card-title">업비트 vs 바이낸스 — 가격 차이가 생기는 이유</div>
+        <div class="blog-card-excerpt">같은 비트코인인데 왜 거래소마다 가격이 다를까요? 유동성, 수요·공급, 규제 환경이 가격에 미치는 영향을 분석합니다.</div>
+        <div class="blog-card-meta">
+          <span>2026.04.22</span>
+          <span>읽는 시간 7분</span>
+        </div>
+      </a>
+
+      <!-- 포스트 3 -->
+      <a class="blog-card" href="post.html?id=satoshi-explained">
+        <span class="blog-tag">기초</span>
+        <div class="blog-card-title">사토시(Satoshi)란? 비트코인 단위 완벽 정리</div>
+        <div class="blog-card-excerpt">1 BTC = 1억 사토시. 소수점 투자가 많아진 요즘, 사토시 단위를 제대로 이해하고 계산기를 활용하는 방법을 알아봅니다.</div>
+        <div class="blog-card-meta">
+          <span>2026.04.15</span>
+          <span>읽는 시간 4분</span>
+        </div>
+      </a>
+
+      <!-- 포스트 4 -->
+      <a class="blog-card" href="post.html?id=bitcoin-investment-basics">
+        <span class="blog-tag">투자</span>
+        <div class="blog-card-title">비트코인 투자 전 꼭 알아야 할 5가지</div>
+        <div class="blog-card-excerpt">변동성이 큰 암호화폐 시장에서 현명하게 투자하는 방법. 분산 투자, 리스크 관리, 감정 통제까지 — 초보 투자자를 위한 필수 체크리스트.</div>
+        <div class="blog-card-meta">
+          <span>2026.04.08</span>
+          <span>읽는 시간 6분</span>
+        </div>
+      </a>
+
+      <!-- 포스트 5 -->
+      <a class="blog-card" href="post.html?id=exchange-rate-impact">
+        <span class="blog-tag">분석</span>
+        <div class="blog-card-title">환율이 비트코인 가격에 미치는 영향</div>
+        <div class="blog-card-excerpt">USD/KRW 환율 변동이 김치 프리미엄과 비트코인 KRW 가격에 어떤 영향을 주는지 데이터와 함께 분석합니다.</div>
+        <div class="blog-card-meta">
+          <span>2026.04.01</span>
+          <span>읽는 시간 5분</span>
+        </div>
+      </a>
+
+      <!-- 포스트 6 -->
+      <a class="blog-card" href="post.html?id=btc-calculator-guide">
+        <span class="blog-tag">가이드</span>
+        <div class="blog-card-title">비트코인 계산기 100% 활용법</div>
+        <div class="blog-card-excerpt">이 사이트의 모든 기능을 최대한 활용하는 방법. 프리미엄 반영 계산, 사토시 변환, 결과 복사까지 실전 활용 가이드.</div>
+        <div class="blog-card-meta">
+          <span>2026.03.25</span>
+          <span>읽는 시간 3분</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</main>
+
+<div id="footer-placeholder"></div>
+
+<script>window.ROOT_PATH = '../';</script>
+<script src="../assets/main.js"></script>
+</body>
+</html>
