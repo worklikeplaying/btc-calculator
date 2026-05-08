@@ -310,7 +310,121 @@ var POSTS = {
     `
   },
 
-  /* ── 6. 비트코인 계산기 활용법 ── */
+  /* ── 6. 거래소마다 비트코인 가격이 다른 이유 ── */
+  'why-btc-price-differs': {
+    tag: '분석',
+    title: '거래소마다 비트코인 가격이 다른 이유 — 완벽 정리',
+    date: '2026년 5월 8일',
+    readTime: '읽는 시간 약 6분',
+    desc: '업비트, 바이낸스, 코인베이스… 같은 비트코인인데 왜 거래소마다 가격이 다를까요? 초보자도 이해할 수 있는 핵심 이유 5가지를 정리했습니다.',
+    html: `
+      <p>스마트폰으로 업비트와 바이낸스를 동시에 켜보면 같은 비트코인인데 가격이 다릅니다. 어떤 날은 수백만 원까지 차이가 납니다. 이유가 뭘까요? 초보자도 이해할 수 있게 핵심만 정리했습니다.</p>
+
+      <h2>거래소 가격은 어떻게 만들어지나?</h2>
+      <p>먼저 가장 중요한 개념을 이해해야 합니다. <strong>비트코인의 가격은 누군가 정해주는 게 아닙니다.</strong> 각 거래소에서 "사겠다"는 사람과 "팔겠다"는 사람이 만나 실제로 거래가 체결된 가격이 그 거래소의 현재가가 됩니다.</p>
+      <p>쉽게 말해, 거래소는 비트코인을 사고파는 시장입니다. 서울 가락시장과 부산 국제시장의 사과 가격이 다를 수 있듯이, 각 거래소의 비트코인 가격도 다를 수 있습니다.</p>
+
+      <div class="callout">
+        <strong>핵심 개념</strong><br />
+        거래소 가격 = 해당 거래소에서 가장 최근에 체결된 실제 거래 가격<br />
+        중앙에서 가격을 정해주는 기관은 없다
+      </div>
+
+      <h2>거래소마다 가격이 다른 5가지 이유</h2>
+
+      <h3>① 유동성(거래량) 차이</h3>
+      <p>유동성은 쉽게 말해 "얼마나 많이 거래되는가"입니다. 바이낸스는 하루 거래량이 수십조 원에 달하는 세계 최대 거래소입니다. 거래량이 많을수록 가격이 안정적이고 실제 시장 가치에 가깝습니다.</p>
+      <p>반면 거래량이 적은 거래소에서는 큰손 한 명이 매수 주문을 넣어도 가격이 크게 요동칩니다. 이것이 거래소마다 가격 차이가 생기는 가장 근본적인 이유입니다.</p>
+
+      <h3>② 결제 통화가 다르다</h3>
+      <p>국내 거래소(업비트, 빗썸)는 원화(KRW)로 비트코인을 사고팝니다. 해외 거래소(바이낸스, 코인베이스)는 달러(USD) 또는 USDT 기반입니다. 두 가격을 비교하려면 환율 변환이 필요하고, 이 환율이 계속 바뀌기 때문에 차이가 생깁니다.</p>
+
+      <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border);">
+            <th style="text-align:left;padding:8px 12px;color:var(--sub);font-weight:600;">거래소</th>
+            <th style="text-align:left;padding:8px 12px;color:var(--sub);font-weight:600;">국가</th>
+            <th style="text-align:left;padding:8px 12px;color:var(--sub);font-weight:600;">결제 통화</th>
+            <th style="text-align:right;padding:8px 12px;color:var(--sub);font-weight:600;">일 거래량 규모</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:8px 12px;">바이낸스</td>
+            <td style="padding:8px 12px;">글로벌</td>
+            <td style="padding:8px 12px;">USD / USDT</td>
+            <td style="text-align:right;padding:8px 12px;">세계 1위</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:8px 12px;">코인베이스</td>
+            <td style="padding:8px 12px;">미국</td>
+            <td style="padding:8px 12px;">USD</td>
+            <td style="text-align:right;padding:8px 12px;">세계 2~3위</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border);">
+            <td style="padding:8px 12px;">업비트</td>
+            <td style="padding:8px 12px;">한국</td>
+            <td style="padding:8px 12px;">KRW</td>
+            <td style="text-align:right;padding:8px 12px;">국내 1위</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;">빗썸</td>
+            <td style="padding:8px 12px;">한국</td>
+            <td style="padding:8px 12px;">KRW</td>
+            <td style="text-align:right;padding:8px 12px;">국내 2위</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>③ 국가별 규제와 자본 이동 제한</h3>
+      <p>한국은 외환 규제가 있어서, 해외 거래소에서 싸게 산 비트코인을 국내로 들여와 비싸게 파는 것(차익 거래)이 매우 어렵습니다. 이 장벽 때문에 국내외 가격 차이가 쉽게 줄어들지 않습니다. 이것이 바로 <strong>김치 프리미엄</strong>이 생기는 구조적 이유입니다.</p>
+
+      <h3>④ 수요와 공급의 지역 편차</h3>
+      <p>한국 투자자들이 비트코인을 열심히 사면 업비트 가격이 올라갑니다. 반대로 한국에서 대규모 매도가 일어나면 국내 가격이 떨어집니다. 이 지역적 수요·공급 차이가 거래소 간 가격 차이를 만듭니다.</p>
+
+      <h3>⑤ 체결 시간의 미세한 차이</h3>
+      <p>비트코인 가격은 1초 단위로 변합니다. A 거래소에서 1억 원에 체결된 직후 B 거래소에서는 이미 9,900만 원으로 체결될 수 있습니다. 실시간으로 봐도 수십만 원 차이는 이 이유만으로도 충분히 설명됩니다.</p>
+
+      <h2>가격 차이는 얼마나 되나? — 실제 계산해보기</h2>
+      <p>업비트와 바이낸스의 가격 차이를 수치로 보면 이해가 쉽습니다.</p>
+
+      <div class="callout">
+        <strong>예시 계산</strong><br />
+        바이낸스 BTC = $94,000 / 환율 = 1,380원<br />
+        바이낸스 원화 환산 = $94,000 × 1,380 = 129,720,000원<br />
+        업비트 BTC = 131,500,000원<br /><br />
+        <strong>김치 프리미엄 = (131,500,000 / 129,720,000 − 1) × 100 ≈ +1.37%</strong>
+      </div>
+
+      <p>1~2% 차이가 작아 보일 수 있지만, 1억 원 기준이면 약 100~200만 원 차이입니다. 시장이 과열될 때는 이 차이가 5~10%까지 벌어지기도 합니다.</p>
+      <p>이 사이트의 메인 화면에서 지금 이 순간의 김치 프리미엄을 실시간으로 확인할 수 있습니다.</p>
+
+      <h2>차익 거래(아비트라지)로 돈을 벌 수 있나?</h2>
+      <p>이론적으로는 가능합니다. 바이낸스에서 싸게 사서 업비트에 비싸게 팔면 이익이 됩니다. 하지만 현실에서는 다음 장벽이 있습니다.</p>
+      <ul>
+        <li><strong>외환 규제:</strong> 달러로 해외에서 산 비트코인을 국내로 들여오는 과정에 제약이 있습니다.</li>
+        <li><strong>거래 수수료:</strong> 매수·매도·출금·입금 수수료가 차익을 상당 부분 잠식합니다.</li>
+        <li><strong>시간 지연:</strong> 비트코인을 다른 거래소로 옮기는 데 수십 분이 걸리며, 그 사이 가격이 변합니다.</li>
+        <li><strong>세금:</strong> 차익에 대한 세금도 고려해야 합니다.</li>
+      </ul>
+      <p>이 장벽들 때문에 개인이 안정적으로 차익 거래로 수익을 내기는 매우 어렵습니다. 오히려 이 장벽이 있어서 가격 차이가 유지됩니다.</p>
+
+      <h2>결론 — 어느 거래소 가격이 맞나?</h2>
+      <p>사실 어느 쪽이 더 '맞는' 가격이라는 개념은 없습니다. 둘 다 해당 시장에서 실제 체결된 가격입니다. 다만 실무적으로는 다음 기준을 참고하세요.</p>
+      <ul>
+        <li><strong>글로벌 기준가:</strong> 바이낸스 USD 가격 (유동성 가장 높음)</li>
+        <li><strong>국내 실거래가:</strong> 업비트 KRW 가격 (실제로 원화로 살 때 내는 가격)</li>
+        <li><strong>김치 프리미엄:</strong> 두 가격의 차이, 국내 시장 분위기를 보는 지표</li>
+      </ul>
+      <p>비트코인을 국내에서 구매할 계획이라면 업비트 가격이 실질적인 기준입니다. 해외 기준가와 김치 프리미엄을 함께 보면서 국내 시장이 과열인지 아닌지 참고 지표로 활용해 보세요.</p>
+
+      <div class="callout">
+        <strong>⚠️ 주의:</strong> 이 글은 정보 제공 목적으로 작성되었습니다. 특정 거래소 이용이나 투자를 권유하지 않으며, 모든 투자 결정의 책임은 본인에게 있습니다.
+      </div>
+    `
+  },
+
+  /* ── 7. 비트코인 계산기 활용법 ── */
   'btc-calculator-guide': {
     tag: '가이드',
     title: '비트코인 계산기 100% 활용법',
